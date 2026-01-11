@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '@/store/gameStore';
 import { useOnlineStore } from '@/store/onlineStore';
@@ -32,13 +32,15 @@ export function Menu() {
         setShowOnlineLobby(false);
     };
 
-    // Override disconnect to also close lobby
-    if (showOnlineLobby && connectionStatus === 'disconnected') {
-        setShowOnlineLobby(false);
-    }
+    // Close lobby if disconnected
+    useEffect(() => {
+        if (showOnlineLobby && connectionStatus === 'disconnected') {
+            setShowOnlineLobby(false);
+        }
+    }, [showOnlineLobby, connectionStatus]);
 
     if (showOnlineLobby) {
-        return <OnlineLobby />;
+        return <OnlineLobby onBack={handleBackFromOnline} />;
     }
 
     const difficulties: { key: AIDifficulty; label: string }[] = [

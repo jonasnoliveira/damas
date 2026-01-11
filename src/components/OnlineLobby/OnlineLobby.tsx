@@ -6,7 +6,11 @@ import { useOnlineStore } from '@/store/onlineStore';
 import { Room } from '@/engine/types';
 import styles from './OnlineLobby.module.css';
 
-export function OnlineLobby() {
+interface OnlineLobbyProps {
+    onBack?: () => void;
+}
+
+export function OnlineLobby({ onBack }: OnlineLobbyProps) {
     const {
         connectionStatus,
         rooms,
@@ -227,7 +231,10 @@ export function OnlineLobby() {
             {/* Back Button */}
             <motion.button
                 className={styles.backBtn}
-                onClick={disconnect}
+                onClick={() => {
+                    disconnect();
+                    onBack?.();
+                }}
                 whileHover={{ scale: 1.02 }}
             >
                 ← Voltar ao Menu
