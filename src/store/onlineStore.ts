@@ -149,7 +149,7 @@ export const useOnlineStore = create<OnlineStore>((set, get) => ({
         });
 
         socket.on('player-left', () => {
-            set({ remotePlayer: null, error: 'O outro jogador saiu da partida' });
+            set({ remotePlayer: null, error: 'O outro jogador saiu da partida', chatMessages: [] });
             useGameStore.getState().goToMenu();
         });
 
@@ -215,7 +215,7 @@ export const useOnlineStore = create<OnlineStore>((set, get) => ({
         const { socket, room } = get();
         if (!socket || !room) return;
         socket.emit('leave-room', room.id);
-        set({ room: null, localPlayer: null, remotePlayer: null });
+        set({ room: null, localPlayer: null, remotePlayer: null, chatMessages: [] });
         useGameStore.getState().goToMenu();
     },
 
