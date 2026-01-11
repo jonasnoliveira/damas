@@ -8,6 +8,15 @@ import {
 import { getSocket, disconnectSocket } from '@/lib/socket';
 import { useGameStore, setOnlineCallbacks, clearOnlineCallbacks } from './gameStore';
 
+export interface ChatMessage {
+    id: string;
+    sender: string;
+    senderId: string;
+    text: string;
+    timestamp: number;
+    isLocal: boolean;
+}
+
 interface OnlineStore {
     // State
     connectionStatus: ConnectionStatus;
@@ -18,6 +27,7 @@ interface OnlineStore {
     playerName: string;
     error: string | null;
     socket: Socket | null;
+    chatMessages: ChatMessage[];
 
     // Actions
     setPlayerName: (name: string) => void;
@@ -28,6 +38,7 @@ interface OnlineStore {
     leaveRoom: () => void;
     sendMove: (move: Move) => void;
     requestRematch: () => void;
+    sendChatMessage: (text: string) => void;
     reset: () => void;
 }
 
@@ -41,6 +52,7 @@ export const useOnlineStore = create<OnlineStore>((set, get) => ({
     playerName: '',
     error: null,
     socket: null,
+    chatMessages: [],
 
     setPlayerName: (name: string) => {
         set({ playerName: name });
@@ -150,9 +162,23 @@ export const useOnlineStore = create<OnlineStore>((set, get) => ({
         });
 
         socket.on('rematch-accepted', (room: Room, board: (Piece | null)[][], currentPlayer: Player) => {
-            set({ room });
+            set({ room, chatMessages: [] }); // Clear chat on rematch
             const local = get().localPlayer;
             useGameStore.getState().startOnlineGame(board, currentPlayer, local?.color || 'white');
+        });
+
+        // Chat message received
+        socket.on('chat-message', (senderId: string, senderName: string, text: string, timestamp: number) => {
+            const local = get().localPlayer;
+            const newMessage: ChatMessage = {
+                id: `${senderId}-${timestamp}`,
+                sender: senderName,
+                senderId,
+                text,
+                timestamp,
+                isLocal: senderId === local?.id,
+            };
+            set((state) => ({ chatMessages: [...state.chatMessages, newMessage] }));
         });
 
         socket.connect();
@@ -169,6 +195,7 @@ export const useOnlineStore = create<OnlineStore>((set, get) => ({
             localPlayer: null,
             remotePlayer: null,
             error: null,
+            chatMessages: [],
         });
     },
 
@@ -204,6 +231,28 @@ export const useOnlineStore = create<OnlineStore>((set, get) => ({
         socket.emit('request-rematch', room.id);
     },
 
+    sendChatMessage: (text: string) => {
+        const { socket, room, localPlayer, playerName } = get();
+        if (!socket || !room) return;
+
+        const timestamp = Date.now();
+        const senderName = playerName || localPlayer?.name || 'Jogador';
+
+        // Add message locally immediately
+        const newMessage: ChatMessage = {
+            id: `${socket.id}-${timestamp}`,
+            sender: senderName,
+            senderId: socket.id || '',
+            text,
+            timestamp,
+            isLocal: true,
+        };
+        set((state) => ({ chatMessages: [...state.chatMessages, newMessage] }));
+
+        // Send to server
+        socket.emit('send-chat', room.id, text);
+    },
+
     reset: () => {
         get().disconnect();
         set({
@@ -214,6 +263,7 @@ export const useOnlineStore = create<OnlineStore>((set, get) => ({
             remotePlayer: null,
             error: null,
             socket: null,
+            chatMessages: [],
         });
     },
 }));

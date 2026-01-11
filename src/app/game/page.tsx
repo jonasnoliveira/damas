@@ -4,10 +4,12 @@ import { useGameStore } from '@/store/gameStore';
 import { Menu } from '@/components/Menu/Menu';
 import { Board } from '@/components/Board/Board';
 import { GameInfo } from '@/components/GameInfo/GameInfo';
+import { Chat } from '@/components/Chat/Chat';
 import styles from './game.module.css';
 
 export default function GamePage() {
     const gameStatus = useGameStore((state) => state.gameStatus);
+    const gameMode = useGameStore((state) => state.gameMode);
 
     if (gameStatus === 'menu') {
         return <Menu />;
@@ -19,6 +21,7 @@ export default function GamePage() {
                 <Board />
                 <GameInfo />
             </div>
+            {gameMode === 'online' && <Chat />}
         </main>
     );
 }
