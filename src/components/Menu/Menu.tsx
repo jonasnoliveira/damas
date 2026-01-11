@@ -3,12 +3,17 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '@/store/gameStore';
+import { useOnlineStore } from '@/store/onlineStore';
 import { AIDifficulty } from '@/engine/types';
+import { OnlineLobby } from '@/components/OnlineLobby/OnlineLobby';
 import styles from './Menu.module.css';
 
 export function Menu() {
     const [selectedDifficulty, setSelectedDifficulty] = useState<AIDifficulty>('medium');
+    const [showOnlineLobby, setShowOnlineLobby] = useState(false);
     const startGame = useGameStore((state) => state.startGame);
+    const disconnectOnline = useOnlineStore((state) => state.disconnect);
+    const connectionStatus = useOnlineStore((state) => state.connectionStatus);
 
     const handlePVP = () => {
         startGame('pvp');
@@ -17,6 +22,24 @@ export function Menu() {
     const handlePVE = () => {
         startGame('pve', selectedDifficulty);
     };
+
+    const handleOnline = () => {
+        setShowOnlineLobby(true);
+    };
+
+    const handleBackFromOnline = () => {
+        disconnectOnline();
+        setShowOnlineLobby(false);
+    };
+
+    // Override disconnect to also close lobby
+    if (showOnlineLobby && connectionStatus === 'disconnected') {
+        setShowOnlineLobby(false);
+    }
+
+    if (showOnlineLobby) {
+        return <OnlineLobby />;
+    }
 
     const difficulties: { key: AIDifficulty; label: string }[] = [
         { key: 'easy', label: 'Fácil' },
@@ -85,6 +108,15 @@ export function Menu() {
                         whileTap={{ scale: 0.98 }}
                     >
                         🤖 Jogar vs Máquina
+                    </motion.button>
+
+                    <motion.button
+                        className={`${styles.menuBtn} ${styles.onlineBtn}`}
+                        onClick={handleOnline}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                    >
+                        🌐 Jogar Online
                     </motion.button>
                 </div>
 

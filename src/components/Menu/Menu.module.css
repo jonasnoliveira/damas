@@ -82,6 +82,17 @@
     box-shadow: var(--shadow-lg), 0 0 30px rgba(233, 69, 96, 0.5);
 }
 
+.onlineBtn {
+    background: linear-gradient(135deg, #00d4ff 0%, #7b68ee 100%);
+    color: white;
+    box-shadow: var(--shadow-md), 0 0 20px rgba(0, 212, 255, 0.3);
+}
+
+.onlineBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg), 0 0 30px rgba(0, 212, 255, 0.5);
+}
+
 /* Difficulty Selection */
 .difficultySection {
     margin-top: var(--spacing-xl);

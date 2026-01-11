@@ -46,10 +46,45 @@ export interface HistoryEntry {
 
 export type GameStatus = 'menu' | 'playing' | 'paused' | 'ended';
 
-export type GameMode = 'pvp' | 'pve';
+export type GameMode = 'pvp' | 'pve' | 'online';
 
 export type AIDifficulty = 'easy' | 'medium' | 'hard';
 
 // Board dimensions
 export const BOARD_SIZE = 8;
 export const PIECES_PER_PLAYER = 12;
+
+// Online Multiplayer Types
+export type RoomStatus = 'waiting' | 'playing' | 'ended';
+
+export interface Room {
+  id: string;
+  name: string;
+  hostId: string;
+  hostName: string;
+  guestId?: string;
+  guestName?: string;
+  status: RoomStatus;
+  board?: (Piece | null)[][];
+  currentPlayer?: Player;
+  capturedWhite?: number;
+  capturedBlack?: number;
+}
+
+export interface OnlinePlayer {
+  id: string;
+  name: string;
+  color: Player;
+}
+
+export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
+
+export interface OnlineGameState {
+  connectionStatus: ConnectionStatus;
+  room: Room | null;
+  rooms: Room[];
+  localPlayer: OnlinePlayer | null;
+  remotePlayer: OnlinePlayer | null;
+  playerName: string;
+  error: string | null;
+}

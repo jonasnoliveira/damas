@@ -2,23 +2,50 @@
 
 import { create } from 'zustand';
 import {
-    GameState, GameMode, AIDifficulty, Player, Position, Move, HistoryEntry
+    GameState, GameMode, AIDifficulty, Player, Position, Move, HistoryEntry, Piece
 } from '@/engine/types';
 import { createInitialBoard, cloneBoard, getOpponent } from '@/engine/board';
 import { getAllValidMoves, executeMove, checkGameEnd } from '@/engine/moves';
 import { getBestMoveAsync } from '@/engine/ai';
 
+// Callback for sending moves online (will be set by onlineStore)
+let onlineMoveCallback: ((move: Move) => void) | null = null;
+let onlineLeaveCallback: (() => void) | null = null;
+let onlineRematchCallback: (() => void) | null = null;
+
+export const setOnlineCallbacks = (
+    sendMove: (move: Move) => void,
+    leaveRoom: () => void,
+    requestRematch: () => void
+) => {
+    onlineMoveCallback = sendMove;
+    onlineLeaveCallback = leaveRoom;
+    onlineRematchCallback = requestRematch;
+};
+
+export const clearOnlineCallbacks = () => {
+    onlineMoveCallback = null;
+    onlineLeaveCallback = null;
+    onlineRematchCallback = null;
+};
+
 interface GameStore extends GameState {
+    // Additional state
+    aiThinking: boolean;
+    localPlayerColor: Player | null; // For online mode
+
     // Actions
     startGame: (mode: GameMode, difficulty?: AIDifficulty) => void;
+    startOnlineGame: (board: (Piece | null)[][], currentPlayer: Player, localColor: Player) => void;
     selectPiece: (pos: Position) => void;
     makeMove: (move: Move) => void;
+    makeOnlineMove: (move: Move) => void; // For sending moves to server
+    receiveOnlineMove: (move: Move, board: (Piece | null)[][], currentPlayer: Player, capturedWhite: number, capturedBlack: number, gameEnded: boolean, winner: Player | null) => void;
     undo: () => void;
     redo: () => void;
     resetGame: () => void;
     goToMenu: () => void;
     setAIThinking: (thinking: boolean) => void;
-    aiThinking: boolean;
 }
 
 const initialState: Omit<GameState, 'board'> & { board: ReturnType<typeof createInitialBoard> } = {
@@ -39,6 +66,7 @@ const initialState: Omit<GameState, 'board'> & { board: ReturnType<typeof create
 export const useGameStore = create<GameStore>((set, get) => ({
     ...initialState,
     aiThinking: false,
+    localPlayerColor: null,
 
     startGame: (mode: GameMode, difficulty: AIDifficulty = 'medium') => {
         const board = createInitialBoard();
@@ -64,12 +92,44 @@ export const useGameStore = create<GameStore>((set, get) => ({
             aiDifficulty: difficulty,
             winner: null,
             aiThinking: false,
+            localPlayerColor: null,
+        });
+    },
+
+    startOnlineGame: (board: (Piece | null)[][], currentPlayer: Player, localColor: Player) => {
+        const initialHistory: HistoryEntry = {
+            board: cloneBoard(board),
+            currentPlayer,
+            capturedWhite: 0,
+            capturedBlack: 0,
+            move: null,
+        };
+
+        set({
+            board: cloneBoard(board),
+            currentPlayer,
+            selectedPiece: null,
+            validMoves: [],
+            capturedWhite: 0,
+            capturedBlack: 0,
+            history: [initialHistory],
+            historyIndex: 0,
+            gameStatus: 'playing',
+            gameMode: 'online',
+            winner: null,
+            aiThinking: false,
+            localPlayerColor: localColor,
         });
     },
 
     selectPiece: (pos: Position) => {
         const state = get();
         if (state.gameStatus !== 'playing' || state.aiThinking) return;
+
+        // In online mode, only allow selecting pieces when it's local player's turn
+        if (state.gameMode === 'online' && state.localPlayerColor !== state.currentPlayer) {
+            return;
+        }
 
         const piece = state.board[pos.row][pos.col];
 
@@ -79,7 +139,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 m => m.to.row === pos.row && m.to.col === pos.col
             );
             if (move) {
-                get().makeMove(move);
+                if (state.gameMode === 'online') {
+                    get().makeOnlineMove(move);
+                } else {
+                    get().makeMove(move);
+                }
                 return;
             }
         }
@@ -167,9 +231,78 @@ export const useGameStore = create<GameStore>((set, get) => ({
         }
     },
 
+    makeOnlineMove: (move: Move) => {
+        // Send move to server via callback
+        if (onlineMoveCallback) {
+            onlineMoveCallback(move);
+        }
+
+        // Optimistically update the local state
+        const state = get();
+        const newBoard = executeMove(state.board, move);
+        const nextPlayer = getOpponent(state.currentPlayer);
+
+        const newCapturedWhite = state.capturedWhite +
+            (state.currentPlayer === 'black' ? move.captures.length : 0);
+        const newCapturedBlack = state.capturedBlack +
+            (state.currentPlayer === 'white' ? move.captures.length : 0);
+
+        const newHistory = state.history.slice(0, state.historyIndex + 1);
+        newHistory.push({
+            board: cloneBoard(newBoard),
+            currentPlayer: nextPlayer,
+            capturedWhite: newCapturedWhite,
+            capturedBlack: newCapturedBlack,
+            move,
+        });
+
+        const gameEnd = checkGameEnd(newBoard, nextPlayer);
+
+        set({
+            board: newBoard,
+            currentPlayer: nextPlayer,
+            selectedPiece: null,
+            validMoves: [],
+            capturedWhite: newCapturedWhite,
+            capturedBlack: newCapturedBlack,
+            history: newHistory,
+            historyIndex: newHistory.length - 1,
+            gameStatus: gameEnd.ended ? 'ended' : 'playing',
+            winner: gameEnd.winner,
+        });
+    },
+
+    receiveOnlineMove: (move: Move, board: (Piece | null)[][], currentPlayer: Player, capturedWhite: number, capturedBlack: number, gameEnded: boolean, winner: Player | null) => {
+        const state = get();
+
+        const newHistory = state.history.slice(0, state.historyIndex + 1);
+        newHistory.push({
+            board: cloneBoard(board),
+            currentPlayer,
+            capturedWhite,
+            capturedBlack,
+            move,
+        });
+
+        set({
+            board: cloneBoard(board),
+            currentPlayer,
+            selectedPiece: null,
+            validMoves: [],
+            capturedWhite,
+            capturedBlack,
+            history: newHistory,
+            historyIndex: newHistory.length - 1,
+            gameStatus: gameEnded ? 'ended' : 'playing',
+            winner,
+        });
+    },
+
     undo: () => {
         const state = get();
         if (state.historyIndex <= 0) return;
+        // Disable undo in online mode
+        if (state.gameMode === 'online') return;
 
         // In PvE mode, undo two moves (player + AI)
         const stepsBack = state.gameMode === 'pve' && state.historyIndex >= 2 ? 2 : 1;
@@ -192,6 +325,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     redo: () => {
         const state = get();
         if (state.historyIndex >= state.history.length - 1) return;
+        // Disable redo in online mode
+        if (state.gameMode === 'online') return;
 
         const newIndex = state.historyIndex + 1;
         const historyEntry = state.history[newIndex];
@@ -209,13 +344,28 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     resetGame: () => {
         const state = get();
+        if (state.gameMode === 'online') {
+            // In online mode, request rematch through the callback
+            if (onlineRematchCallback) {
+                onlineRematchCallback();
+            }
+            return;
+        }
         get().startGame(state.gameMode, state.aiDifficulty);
     },
 
     goToMenu: () => {
+        const state = get();
+        if (state.gameMode === 'online') {
+            if (onlineLeaveCallback) {
+                onlineLeaveCallback();
+            }
+        }
+        clearOnlineCallbacks();
         set({
             ...initialState,
             board: createInitialBoard(),
+            localPlayerColor: null,
         });
     },
 

@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '@/store/gameStore';
+import { useOnlineStore } from '@/store/onlineStore';
 import styles from './GameInfo.module.css';
 
 export function GameInfo() {
@@ -13,14 +14,19 @@ export function GameInfo() {
         gameStatus,
         winner,
         gameMode,
+        currentPlayer,
+        localPlayerColor,
         undo,
         redo,
         resetGame,
         goToMenu,
     } = useGameStore();
 
-    const canUndo = historyIndex > 0;
-    const canRedo = historyIndex < history.length - 1;
+    const { localPlayer, remotePlayer, leaveRoom } = useOnlineStore();
+
+    const canUndo = historyIndex > 0 && gameMode !== 'online';
+    const canRedo = historyIndex < history.length - 1 && gameMode !== 'online';
+    const isOnline = gameMode === 'online';
 
     // Convert move to notation
     const getMoveNotation = (moveIndex: number) => {
@@ -32,8 +38,45 @@ export function GameInfo() {
         return captures.length > 0 ? `${fromNotation}x${toNotation}` : `${fromNotation}-${toNotation}`;
     };
 
+    const handleLeave = () => {
+        if (isOnline) {
+            leaveRoom();
+        } else {
+            goToMenu();
+        }
+    };
+
     return (
         <div className={styles.gameInfo}>
+            {/* Online Player Info */}
+            {isOnline && (
+                <div className={styles.infoCard}>
+                    <div className={styles.cardTitle}>Jogadores</div>
+                    <div className={styles.playersInfo}>
+                        <div className={`${styles.playerRow} ${currentPlayer === 'white' ? styles.playerActive : ''}`}>
+                            <div className={`${styles.playerPiece} ${styles.scoreWhite}`} />
+                            <div className={styles.playerDetails}>
+                                <span className={styles.playerName}>
+                                    {localPlayerColor === 'white' ? `${localPlayer?.name || 'Você'} (você)` : remotePlayer?.name || 'Oponente'}
+                                </span>
+                                <span className={styles.playerColor}>Brancas</span>
+                            </div>
+                            {currentPlayer === 'white' && <span className={styles.turnIndicator}>⏳</span>}
+                        </div>
+                        <div className={`${styles.playerRow} ${currentPlayer === 'black' ? styles.playerActive : ''}`}>
+                            <div className={`${styles.playerPiece} ${styles.scoreBlack}`} />
+                            <div className={styles.playerDetails}>
+                                <span className={styles.playerName}>
+                                    {localPlayerColor === 'black' ? `${localPlayer?.name || 'Você'} (você)` : remotePlayer?.name || 'Oponente'}
+                                </span>
+                                <span className={styles.playerColor}>Pretas</span>
+                            </div>
+                            {currentPlayer === 'black' && <span className={styles.turnIndicator}>⏳</span>}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Captured Pieces */}
             <div className={styles.infoCard}>
                 <div className={styles.cardTitle}>Capturas</div>
@@ -53,35 +96,39 @@ export function GameInfo() {
             <div className={styles.infoCard}>
                 <div className={styles.cardTitle}>Controles</div>
                 <div className={styles.controls}>
-                    <button
-                        className={`${styles.controlBtn} ${styles.undoBtn}`}
-                        onClick={undo}
-                        disabled={!canUndo}
-                        title="Desfazer"
-                    >
-                        ↩️ Voltar
-                    </button>
-                    <button
-                        className={`${styles.controlBtn} ${styles.redoBtn}`}
-                        onClick={redo}
-                        disabled={!canRedo}
-                        title="Refazer"
-                    >
-                        Avançar ↪️
-                    </button>
+                    {!isOnline && (
+                        <>
+                            <button
+                                className={`${styles.controlBtn} ${styles.undoBtn}`}
+                                onClick={undo}
+                                disabled={!canUndo}
+                                title="Desfazer"
+                            >
+                                ↩️ Voltar
+                            </button>
+                            <button
+                                className={`${styles.controlBtn} ${styles.redoBtn}`}
+                                onClick={redo}
+                                disabled={!canRedo}
+                                title="Refazer"
+                            >
+                                Avançar ↪️
+                            </button>
+                        </>
+                    )}
                     <button
                         className={`${styles.controlBtn} ${styles.resetBtn}`}
                         onClick={resetGame}
-                        title="Reiniciar"
+                        title={isOnline ? "Revanche" : "Reiniciar"}
                     >
-                        🔄 Reiniciar
+                        🔄 {isOnline ? 'Revanche' : 'Reiniciar'}
                     </button>
                     <button
                         className={`${styles.controlBtn} ${styles.menuBtn}`}
-                        onClick={goToMenu}
-                        title="Menu"
+                        onClick={handleLeave}
+                        title={isOnline ? "Sair da Sala" : "Menu"}
                     >
-                        🏠 Menu
+                        🏠 {isOnline ? 'Sair' : 'Menu'}
                     </button>
                 </div>
             </div>
@@ -127,22 +174,24 @@ export function GameInfo() {
                                 className={`${styles.winnerPiece} ${winner === 'white' ? styles.scoreWhite : styles.scoreBlack}`}
                             />
                             <p className={styles.winnerText}>
-                                {gameMode === 'pve' && winner === 'black'
-                                    ? 'A IA venceu!'
-                                    : `As ${winner === 'white' ? 'Brancas' : 'Pretas'} venceram!`}
+                                {isOnline
+                                    ? (winner === localPlayerColor ? 'Você venceu!' : `${remotePlayer?.name || 'Oponente'} venceu!`)
+                                    : gameMode === 'pve' && winner === 'black'
+                                        ? 'A IA venceu!'
+                                        : `As ${winner === 'white' ? 'Brancas' : 'Pretas'} venceram!`}
                             </p>
                             <div className={styles.winnerButtons}>
                                 <button
                                     className="btn btn-primary"
                                     onClick={resetGame}
                                 >
-                                    Jogar Novamente
+                                    {isOnline ? 'Revanche' : 'Jogar Novamente'}
                                 </button>
                                 <button
                                     className="btn btn-secondary"
-                                    onClick={goToMenu}
+                                    onClick={handleLeave}
                                 >
-                                    Menu
+                                    {isOnline ? 'Sair da Sala' : 'Menu'}
                                 </button>
                             </div>
                         </motion.div>
