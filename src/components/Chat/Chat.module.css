@@ -207,6 +207,89 @@
     cursor: not-allowed;
 }
 
+/* Emoji Toggle Button */
+.emojiToggle {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.emojiToggle:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.emojiToggleActive {
+    background: rgba(99, 102, 241, 0.3);
+    border-color: var(--color-primary);
+}
+
+/* Emoji Bar */
+.emojiBar {
+    background: rgba(0, 0, 0, 0.3);
+    border-top: 1px solid rgba(99, 102, 241, 0.2);
+    padding: var(--spacing-sm);
+    overflow: hidden;
+}
+
+.emojiGrid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-xs);
+}
+
+.emojiBtn {
+    width: 100%;
+    aspect-ratio: 1;
+    border: none;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-sm);
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.emojiBtn:hover {
+    background: rgba(99, 102, 241, 0.3);
+    transform: scale(1.1);
+}
+
+.emojiBtn:active {
+    transform: scale(0.95);
+}
+
+.emojiHint {
+    font-size: 10px;
+    color: var(--color-text-secondary);
+    text-align: center;
+}
+
+.emojiAddBtn {
+    background: none;
+    border: none;
+    color: var(--color-primary-light);
+    cursor: pointer;
+    font-size: 10px;
+    text-decoration: underline;
+}
+
+.emojiAddBtn:hover {
+    color: var(--color-primary);
+}
+
 /* Scrollbar styling */
 .messagesContainer::-webkit-scrollbar {
     width: 6px;

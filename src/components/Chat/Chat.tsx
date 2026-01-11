@@ -5,12 +5,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useOnlineStore, ChatMessage } from '@/store/onlineStore';
 import styles from './Chat.module.css';
 
+// Quick emoji options
+const QUICK_EMOJIS = ['👋', '😄', '😂', '🎉', '👍', '👏', '🔥', '😎', '🤔', '😅', '💪', '🏆'];
+
 export function Chat() {
     const [message, setMessage] = useState('');
     const [isOpen, setIsOpen] = useState(false);
+    const [showEmojis, setShowEmojis] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
     const [notification, setNotification] = useState<ChatMessage | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
     const prevMessagesLength = useRef(0);
 
     const {
@@ -34,9 +39,7 @@ export function Chat() {
             if (!lastMessage.isLocal) {
                 if (!isOpen) {
                     setUnreadCount(prev => prev + 1);
-                    // Show notification popup
                     setNotification(lastMessage);
-                    // Auto-hide after 4 seconds
                     setTimeout(() => {
                         setNotification(null);
                     }, 4000);
@@ -50,6 +53,7 @@ export function Chat() {
         if (!message.trim() || connectionStatus !== 'connected') return;
         sendChatMessage(message.trim());
         setMessage('');
+        setShowEmojis(false);
     };
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -57,6 +61,19 @@ export function Chat() {
             e.preventDefault();
             handleSend();
         }
+    };
+
+    const handleEmojiClick = (emoji: string) => {
+        // Send emoji directly as a message
+        if (connectionStatus === 'connected') {
+            sendChatMessage(emoji);
+        }
+        setShowEmojis(false);
+    };
+
+    const addEmojiToMessage = (emoji: string) => {
+        setMessage(prev => prev + emoji);
+        inputRef.current?.focus();
     };
 
     const formatTime = (timestamp: number) => {
@@ -164,8 +181,52 @@ export function Chat() {
                             <div ref={messagesEndRef} />
                         </div>
 
+                        {/* Quick Emoji Bar */}
+                        <AnimatePresence>
+                            {showEmojis && (
+                                <motion.div
+                                    className={styles.emojiBar}
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                >
+                                    <div className={styles.emojiGrid}>
+                                        {QUICK_EMOJIS.map((emoji) => (
+                                            <button
+                                                key={emoji}
+                                                className={styles.emojiBtn}
+                                                onClick={() => handleEmojiClick(emoji)}
+                                                title="Enviar emoji"
+                                            >
+                                                {emoji}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <div className={styles.emojiHint}>
+                                        Clique para enviar ou{' '}
+                                        <button
+                                            className={styles.emojiAddBtn}
+                                            onClick={() => {
+                                                if (QUICK_EMOJIS[0]) addEmojiToMessage(QUICK_EMOJIS[0]);
+                                            }}
+                                        >
+                                            adicionar à mensagem
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
                         <div className={styles.inputContainer}>
+                            <button
+                                className={`${styles.emojiToggle} ${showEmojis ? styles.emojiToggleActive : ''}`}
+                                onClick={() => setShowEmojis(!showEmojis)}
+                                title="Emojis"
+                            >
+                                😊
+                            </button>
                             <input
+                                ref={inputRef}
                                 type="text"
                                 className={styles.chatInput}
                                 value={message}
