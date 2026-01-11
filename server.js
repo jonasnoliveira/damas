@@ -261,13 +261,19 @@ app.prepare().then(() => {
 
         // Chat message handler
         socket.on('send-chat', (roomId, text) => {
+            console.log(`[Chat] Message received from ${socket.id} for room ${roomId}: "${text}"`);
             const room = rooms.get(roomId);
-            if (!room) return;
+            if (!room) {
+                console.log(`[Chat] Room ${roomId} not found`);
+                return;
+            }
 
             // Determine sender name
             const isHost = room.hostId === socket.id;
             const senderName = isHost ? room.hostName : room.guestName;
             const timestamp = Date.now();
+
+            console.log(`[Chat] Broadcasting to room ${roomId} from ${senderName}`);
 
             // Broadcast to the OTHER player in the room (not the sender)
             socket.to(roomId).emit('chat-message', socket.id, senderName, text, timestamp);

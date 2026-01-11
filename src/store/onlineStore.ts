@@ -169,6 +169,7 @@ export const useOnlineStore = create<OnlineStore>((set, get) => ({
 
         // Chat message received
         socket.on('chat-message', (senderId: string, senderName: string, text: string, timestamp: number) => {
+            console.log('[Chat] Message received:', { senderId, senderName, text, timestamp });
             const local = get().localPlayer;
             const newMessage: ChatMessage = {
                 id: `${senderId}-${timestamp}`,
@@ -233,7 +234,12 @@ export const useOnlineStore = create<OnlineStore>((set, get) => ({
 
     sendChatMessage: (text: string) => {
         const { socket, room, localPlayer, playerName } = get();
-        if (!socket || !room) return;
+        if (!socket || !room) {
+            console.log('[Chat] Cannot send - no socket or room');
+            return;
+        }
+
+        console.log('[Chat] Sending message:', { roomId: room.id, text });
 
         const timestamp = Date.now();
         const senderName = playerName || localPlayer?.name || 'Jogador';

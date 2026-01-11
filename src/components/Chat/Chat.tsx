@@ -2,28 +2,20 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useOnlineStore } from '@/store/onlineStore';
+import { useOnlineStore, ChatMessage } from '@/store/onlineStore';
 import styles from './Chat.module.css';
-
-interface ChatMessage {
-    id: string;
-    sender: string;
-    senderId: string;
-    text: string;
-    timestamp: number;
-    isLocal: boolean;
-}
 
 export function Chat() {
     const [message, setMessage] = useState('');
     const [isOpen, setIsOpen] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [notification, setNotification] = useState<ChatMessage | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const prevMessagesLength = useRef(0);
 
     const {
         chatMessages,
         sendChatMessage,
-        localPlayer,
         connectionStatus
     } = useOnlineStore();
 
@@ -35,14 +27,23 @@ export function Chat() {
         }
     }, [chatMessages, isOpen]);
 
-    // Count unread messages when chat is closed
+    // Show notification popup and count unread when chat is closed
     useEffect(() => {
-        if (!isOpen && chatMessages.length > 0) {
+        if (chatMessages.length > prevMessagesLength.current) {
             const lastMessage = chatMessages[chatMessages.length - 1];
             if (!lastMessage.isLocal) {
-                setUnreadCount(prev => prev + 1);
+                if (!isOpen) {
+                    setUnreadCount(prev => prev + 1);
+                    // Show notification popup
+                    setNotification(lastMessage);
+                    // Auto-hide after 4 seconds
+                    setTimeout(() => {
+                        setNotification(null);
+                    }, 4000);
+                }
             }
         }
+        prevMessagesLength.current = chatMessages.length;
     }, [chatMessages, isOpen]);
 
     const handleSend = () => {
@@ -65,14 +66,45 @@ export function Chat() {
         });
     };
 
+    const handleNotificationClick = () => {
+        setNotification(null);
+        setIsOpen(true);
+        setUnreadCount(0);
+    };
+
     return (
         <div className={styles.chatContainer}>
+            {/* Notification Popup */}
+            <AnimatePresence>
+                {notification && !isOpen && (
+                    <motion.div
+                        className={styles.notification}
+                        initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.9 }}
+                        onClick={handleNotificationClick}
+                    >
+                        <div className={styles.notificationHeader}>
+                            <span className={styles.notificationSender}>
+                                💬 {notification.sender}
+                            </span>
+                        </div>
+                        <div className={styles.notificationText}>
+                            {notification.text}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Chat Toggle Button */}
             <motion.button
                 className={styles.chatToggle}
                 onClick={() => {
                     setIsOpen(!isOpen);
-                    if (!isOpen) setUnreadCount(0);
+                    if (!isOpen) {
+                        setUnreadCount(0);
+                        setNotification(null);
+                    }
                 }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}

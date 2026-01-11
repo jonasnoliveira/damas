@@ -49,13 +49,17 @@
     right: 0;
     width: 320px;
     height: 400px;
-    background: var(--color-card);
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-xl);
+    box-shadow:
+        var(--shadow-xl),
+        0 0 40px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    backdrop-filter: blur(20px);
 }
 
 .chatHeader {
@@ -231,4 +235,66 @@
         height: 350px;
         right: -8px;
     }
+
+    .notification {
+        right: -8px;
+        width: calc(100vw - 32px);
+    }
+}
+
+/* Notification popup */
+.notification {
+    position: absolute;
+    bottom: 70px;
+    right: 0;
+    width: 280px;
+    padding: var(--spacing-md);
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl), 0 0 20px rgba(99, 102, 241, 0.3);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.notification:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl), 0 0 30px rgba(99, 102, 241, 0.4);
+}
+
+.notificationHeader {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--spacing-xs);
+}
+
+.notificationSender {
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+    color: var(--color-primary-light);
+}
+
+.notificationText {
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Notification animation */
+@keyframes notificationPulse {
+
+    0%,
+    100% {
+        box-shadow: var(--shadow-xl), 0 0 20px rgba(99, 102, 241, 0.3);
+    }
+
+    50% {
+        box-shadow: var(--shadow-xl), 0 0 30px rgba(99, 102, 241, 0.5);
+    }
+}
+
+.notification {
+    animation: notificationPulse 2s infinite;
 }
