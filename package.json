@@ -5,8 +5,10 @@
   "scripts": {
     "dev": "node server.js",
     "dev:next": "next dev",
+    "dev:ws": "node ws-server.js",
     "build": "next build",
     "start": "NODE_ENV=production node server.js",
+    "start:ws": "NODE_ENV=production node ws-server.js",
     "lint": "eslint"
   },
   "dependencies": {

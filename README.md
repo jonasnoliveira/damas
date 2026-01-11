@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎮 Damas Brasileiras
 
-## Getting Started
+Jogo de Damas Brasileiras com modo local e multiplayer online em tempo real.
 
-First, run the development server:
+## ✨ Funcionalidades
+
+- 👥 **Jogar vs Amigo** - Modo local para dois jogadores
+- 🤖 **Jogar vs Máquina** - IA com 3 níveis de dificuldade
+- 🌐 **Jogar Online** - Multiplayer em tempo real via WebSocket
+
+## 🚀 Desenvolvimento Local
 
 ```bash
+# Instalar dependências
+npm install
+
+# Rodar servidor de desenvolvimento (Next.js + WebSocket)
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Abrir http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 📦 Deploy em Produção
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Opção 1: Servidor VPS (recomendado para multiplayer)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Deploy em um servidor que suporta Node.js (ex: DigitalOcean, AWS EC2):
 
-## Learn More
+```bash
+npm run build
+npm run start
+```
 
-To learn more about Next.js, take a look at the following resources:
+### Opção 2: Vercel + Servidor WebSocket Externo
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+A Vercel não suporta WebSockets persistentes. Para multiplayer online, você precisa:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **Deploy do frontend na Vercel**
+   - Conecte seu repositório GitHub à Vercel
+   - O build usará `next build`
 
-## Deploy on Vercel
+2. **Deploy do servidor WebSocket no Railway/Render**
+   - Crie um novo projeto no [Railway](https://railway.app) ou [Render](https://render.com)
+   - Use o arquivo `ws-server.js`
+   - Configure o start command: `npm run start:ws`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+3. **Configure a variável de ambiente na Vercel**
+   - Vá em Settings > Environment Variables
+   - Adicione: `NEXT_PUBLIC_WS_SERVER_URL` = `https://seu-app.railway.app`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Scripts Disponíveis
+
+| Script | Descrição |
+|--------|-----------|
+| `npm run dev` | Servidor de desenvolvimento (Next.js + WebSocket) |
+| `npm run dev:ws` | Apenas servidor WebSocket (porta 3001) |
+| `npm run build` | Build de produção do Next.js |
+| `npm run start` | Servidor de produção completo |
+| `npm run start:ws` | Apenas servidor WebSocket em produção |
+
+## 🎯 Regras do Jogo
+
+- Tabuleiro 8x8
+- Peças brancas começam
+- Captura obrigatória
+- Peças promovem a Dama ao chegar no lado oposto
+- Damas movem em qualquer direção diagonal
+
+## 🛠️ Tecnologias
+
+- [Next.js 16](https://nextjs.org/) - Framework React
+- [Zustand](https://zustand-demo.pmnd.rs/) - Gerenciamento de estado
+- [Socket.IO](https://socket.io/) - Comunicação em tempo real
+- [Framer Motion](https://www.framer.com/motion/) - Animações
