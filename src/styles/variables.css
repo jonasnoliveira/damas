@@ -1,0 +1,89 @@
+/* Design System Variables - Brazilian Checkers */
+
+:root {
+  /* Color Palette - Wood Theme */
+  --color-board-light: #f0d9b5;
+  --color-board-dark: #b58863;
+  --color-board-dark-hover: #a67b5b;
+  
+  /* Piece Colors */
+  --color-piece-white: #fff8e7;
+  --color-piece-white-shadow: #d4c4a8;
+  --color-piece-white-highlight: #ffffff;
+  --color-piece-black: #1a1a2e;
+  --color-piece-black-shadow: #0d0d15;
+  --color-piece-black-highlight: #2d2d44;
+  
+  /* King Crown */
+  --color-crown-gold: #ffd700;
+  --color-crown-gold-dark: #b8860b;
+  
+  /* UI Colors */
+  --color-bg-primary: #1a1a2e;
+  --color-bg-secondary: #16213e;
+  --color-bg-tertiary: #0f3460;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a0a0a0;
+  --color-accent: #e94560;
+  --color-accent-hover: #ff6b6b;
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  
+  /* Game State Colors */
+  --color-selected: rgba(76, 175, 80, 0.6);
+  --color-valid-move: rgba(255, 235, 59, 0.5);
+  --color-capture: rgba(244, 67, 54, 0.5);
+  --color-last-move: rgba(33, 150, 243, 0.4);
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.4);
+  --shadow-piece: 0 4px 8px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 20px rgba(233, 69, 96, 0.5);
+  
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 50%;
+  
+  /* Typography */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: 2rem;
+  --font-size-3xl: 2.5rem;
+  --font-size-4xl: 3rem;
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 400ms ease;
+  
+  /* Board Sizing */
+  --board-size: min(90vw, 560px);
+  --square-size: calc(var(--board-size) / 8);
+  --piece-size: calc(var(--square-size) * 0.8);
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  :root {
+    --board-size: 95vw;
+    --font-size-3xl: 2rem;
+    --font-size-4xl: 2.5rem;
+  }
+}

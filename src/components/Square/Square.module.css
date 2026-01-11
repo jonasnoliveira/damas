@@ -1,0 +1,101 @@
+.square {
+    width: var(--square-size);
+    height: var(--square-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: background-color var(--transition-fast);
+}
+
+/* Light Square */
+.light {
+    background: var(--color-board-light);
+}
+
+/* Dark Square */
+.dark {
+    background: var(--color-board-dark);
+}
+
+/* Valid Move Indicator */
+.validMove {
+    cursor: pointer;
+}
+
+.validMove::after {
+    content: '';
+    position: absolute;
+    width: 35%;
+    height: 35%;
+    border-radius: var(--radius-full);
+    background: var(--color-valid-move);
+    box-shadow: 0 0 10px rgba(255, 235, 59, 0.6);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.7;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+}
+
+/* Capture Move Indicator */
+.captureMove::after {
+    background: var(--color-capture);
+    box-shadow: 0 0 10px rgba(244, 67, 54, 0.6);
+    width: 60%;
+    height: 60%;
+    border: 3px dashed rgba(255, 255, 255, 0.5);
+}
+
+/* Selected Square */
+.selected {
+    background: var(--color-selected) !important;
+}
+
+/* Last Move Highlight */
+.lastMove {
+    background: var(--color-last-move) !important;
+}
+
+/* Hover on dark squares only */
+.dark:hover:not(.validMove):not(.selected) {
+    background: var(--color-board-dark-hover);
+}
+
+/* Corner coordinates */
+.coordinate {
+    position: absolute;
+    font-size: 10px;
+    font-weight: 600;
+    opacity: 0.6;
+    color: inherit;
+    pointer-events: none;
+}
+
+.light .coordinate {
+    color: var(--color-board-dark);
+}
+
+.dark .coordinate {
+    color: var(--color-board-light);
+}
+
+.coordinateRow {
+    left: 3px;
+    top: 2px;
+}
+
+.coordinateCol {
+    right: 3px;
+    bottom: 2px;
+}

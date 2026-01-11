@@ -1,0 +1,86 @@
+.piece {
+    width: var(--piece-size);
+    height: var(--piece-size);
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    transition: transform var(--transition-fast);
+}
+
+.piece::before {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border-radius: var(--radius-full);
+    background: inherit;
+}
+
+/* White Piece */
+.pieceWhite {
+    background: linear-gradient(145deg, var(--color-piece-white) 0%, var(--color-piece-white-shadow) 100%);
+    box-shadow:
+        var(--shadow-piece),
+        inset 0 2px 4px rgba(255, 255, 255, 0.8),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.pieceWhite::before {
+    background: linear-gradient(145deg, var(--color-piece-white-highlight) 0%, var(--color-piece-white) 50%);
+    opacity: 0.6;
+}
+
+/* Black Piece */
+.pieceBlack {
+    background: linear-gradient(145deg, var(--color-piece-black-highlight) 0%, var(--color-piece-black) 100%);
+    box-shadow:
+        var(--shadow-piece),
+        inset 0 2px 4px rgba(255, 255, 255, 0.2),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.pieceBlack::before {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.15) 0%, transparent 50%);
+}
+
+/* King Crown */
+.crown {
+    position: absolute;
+    font-size: calc(var(--piece-size) * 0.4);
+    z-index: 2;
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
+}
+
+.pieceWhite .crown {
+    color: var(--color-crown-gold-dark);
+}
+
+.pieceBlack .crown {
+    color: var(--color-crown-gold);
+}
+
+/* Selected State */
+.selected {
+    transform: scale(1.1);
+    box-shadow:
+        var(--shadow-piece),
+        0 0 0 3px var(--color-accent),
+        0 0 20px rgba(233, 69, 96, 0.6);
+}
+
+/* Hover State */
+.piece:hover:not(.selected) {
+    transform: scale(1.05);
+}
+
+/* Disabled State (not current player) */
+.disabled {
+    cursor: default;
+    opacity: 0.9;
+}
+
+.disabled:hover {
+    transform: none;
+}
