@@ -16,11 +16,18 @@ export function Board() {
         history,
         historyIndex,
         aiThinking,
+        gameMode,
+        localPlayerColor,
         selectPiece,
     } = useGameStore();
 
     // Get last move for highlighting
     const lastMove = historyIndex > 0 ? history[historyIndex]?.move : null;
+
+    // Check if it's the local player's turn in online mode
+    const isOnline = gameMode === 'online';
+    const isMyTurn = !isOnline || localPlayerColor === currentPlayer;
+    const waitingForOpponent = isOnline && !isMyTurn;
 
     const handleSquareClick = (row: number, col: number) => {
         if (aiThinking) return;
@@ -44,6 +51,17 @@ export function Board() {
                                 <span className={styles.thinkingDot} />
                             </span>
                         </span>
+                    ) : waitingForOpponent ? (
+                        <span className={styles.waitingOpponent}>
+                            Aguardando oponente
+                            <span className={styles.thinkingDots}>
+                                <span className={styles.thinkingDot} />
+                                <span className={styles.thinkingDot} />
+                                <span className={styles.thinkingDot} />
+                            </span>
+                        </span>
+                    ) : isOnline && isMyTurn ? (
+                        <span className={styles.yourTurn}>✨ Sua vez!</span>
                     ) : (
                         `Vez das ${currentPlayer === 'white' ? 'Brancas' : 'Pretas'}`
                     )}
@@ -52,7 +70,7 @@ export function Board() {
 
             {/* Board */}
             <motion.div
-                className={styles.board}
+                className={`${styles.board} ${waitingForOpponent ? styles.boardDisabled : ''}`}
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.3 }}
@@ -94,7 +112,7 @@ export function Board() {
                                             <Piece
                                                 piece={piece}
                                                 isSelected={!!isSelected}
-                                                isCurrentPlayer={piece.player === currentPlayer && !aiThinking}
+                                                isCurrentPlayer={piece.player === currentPlayer && !aiThinking && isMyTurn}
                                                 onClick={() => handleSquareClick(rowIndex, colIndex)}
                                             />
                                         </motion.div>
