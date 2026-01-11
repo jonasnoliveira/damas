@@ -32,12 +32,22 @@ export function Menu() {
         setShowOnlineLobby(false);
     };
 
-    // Close lobby if disconnected
+    // Track if we've ever been connected
+    const [wasConnected, setWasConnected] = useState(false);
+
     useEffect(() => {
-        if (showOnlineLobby && connectionStatus === 'disconnected') {
-            setShowOnlineLobby(false);
+        if (connectionStatus === 'connected') {
+            setWasConnected(true);
         }
-    }, [showOnlineLobby, connectionStatus]);
+    }, [connectionStatus]);
+
+    // Close lobby if disconnected AFTER being connected (not on initial state)
+    useEffect(() => {
+        if (showOnlineLobby && wasConnected && connectionStatus === 'disconnected') {
+            setShowOnlineLobby(false);
+            setWasConnected(false);
+        }
+    }, [showOnlineLobby, connectionStatus, wasConnected]);
 
     if (showOnlineLobby) {
         return <OnlineLobby onBack={handleBackFromOnline} />;
