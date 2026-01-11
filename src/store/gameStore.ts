@@ -124,10 +124,27 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     selectPiece: (pos: Position) => {
         const state = get();
-        if (state.gameStatus !== 'playing' || state.aiThinking) return;
+
+        // Debug logging for online mode
+        if (state.gameMode === 'online') {
+            console.log('[Game] selectPiece called:', {
+                pos,
+                gameStatus: state.gameStatus,
+                gameMode: state.gameMode,
+                currentPlayer: state.currentPlayer,
+                localPlayerColor: state.localPlayerColor,
+                isMyTurn: state.localPlayerColor === state.currentPlayer,
+            });
+        }
+
+        if (state.gameStatus !== 'playing' || state.aiThinking) {
+            console.log('[Game] selectPiece blocked: gameStatus=', state.gameStatus, 'aiThinking=', state.aiThinking);
+            return;
+        }
 
         // In online mode, only allow selecting pieces when it's local player's turn
         if (state.gameMode === 'online' && state.localPlayerColor !== state.currentPlayer) {
+            console.log('[Game] selectPiece blocked: not your turn');
             return;
         }
 
@@ -154,6 +171,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
             const pieceMoves = allMoves.filter(
                 m => m.from.row === pos.row && m.from.col === pos.col
             );
+
+            console.log('[Game] Piece selected, valid moves:', pieceMoves.length);
 
             set({
                 selectedPiece: pos,

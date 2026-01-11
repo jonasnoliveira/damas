@@ -123,9 +123,13 @@ export const useOnlineStore = create<OnlineStore>((set, get) => ({
         });
 
         socket.on('game-start', (room: Room, board: (Piece | null)[][], currentPlayer: Player) => {
+            console.log('[Online] game-start received:', { room: room.id, currentPlayer });
             set({ room });
             const local = get().localPlayer;
-            useGameStore.getState().startOnlineGame(board, currentPlayer, local?.color || 'white');
+            console.log('[Online] localPlayer:', local);
+            const localColor = local?.color || 'white';
+            console.log('[Online] Starting game with localColor:', localColor);
+            useGameStore.getState().startOnlineGame(board, currentPlayer, localColor);
         });
 
         socket.on('move-made', (move: Move, board: (Piece | null)[][], currentPlayer: Player, capturedWhite: number, capturedBlack: number, gameEnded: boolean, winner: Player | null) => {

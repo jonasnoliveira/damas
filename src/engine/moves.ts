@@ -233,11 +233,11 @@ function getDirections(piece: Piece): { row: number; col: number }[] {
     if (piece.type === 'king') {
         return DIRECTIONS;
     }
-    // Pawns: white moves down (positive row), black moves up (negative row)
+    // Pawns: white moves UP (negative row toward row 0), black moves DOWN (positive row toward row 7)
     if (piece.player === 'white') {
-        return [{ row: 1, col: -1 }, { row: 1, col: 1 }];
+        return [{ row: -1, col: -1 }, { row: -1, col: 1 }];
     }
-    return [{ row: -1, col: -1 }, { row: -1, col: 1 }];
+    return [{ row: 1, col: -1 }, { row: 1, col: 1 }];
 }
 
 /**
